@@ -1,0 +1,111 @@
+<!--
+  -  SMB rules
+  -  Author: Daniel Cid.
+  -  Updated by Wazuh, Inc.
+  -  Copyright (C) 2015, Wazuh Inc.
+  -  Copyright (C) 2009 Trend Micro Inc.
+  -  This program is a free software; you can redistribute it and/or modify it under the terms of GPLv2.
+-->
+
+<group name="syslog,smbd,">
+  <rule id="13100" level="0" noalert="1">
+    <decoded_as>smbd</decoded_as>
+    <description>Grouping for the smbd rules.</description>
+    <description>该规则标识smbd规则分组</description>
+  <info></info>
+  </rule>
+
+  <rule id="13101" level="0">
+    <if_sid>13100</if_sid>
+    <match>getpeername failed. Error was Transport endpoint</match>
+    <description>Samba network problems.</description>
+    <description>该规则用于检测获取对等体名称失败导致的samba网络问题</description>
+  <info>处置建议：\n1. 通过查看日志以确定问题的根本原因，如：网络问题、对等体配置等。\n2. 尝试重新启动Samba服务并检查Samba配置文件。\n3. 检查网络设置，确保Samba服务器可以到达对等体。\n4 检查防火墙设置，确保Samba端口未被阻止。\n5. 验证Samba用户访问权限。\n6. 在Samba服务器和对等体之间运行传输测试。\n7. 对系统和Samba安装进行软件和硬件故障排除。\n8. 修复问题后，更新规则以防止将来发生此类问题。</info>
+  </rule>
+
+  <rule id="13102" level="5">
+    <if_sid>13100</if_sid>
+    <match>Denied connection from|Connection denied from</match>
+    <description>Samba connection denied.</description>
+    <description>该规则用于检测连接被拒绝</description>
+    <group>access_denied,pci_dss_10.2.4,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 检查Samba服务器的配置文件，确保它允许连接。\n2. 确认连接信息是否正确，检查连接方的IP地址、用户凭据和端口。\n3. 检查连接方是否具有正确的权限和访问级别。\n4. 检查防火墙和网络设备，确保它们未阻止连接。\n5. 测试确保Samba服务器可以访问连接方。\n6. 如果确定问题是由于安全漏洞造成的，请尽快升级和修补管理员设置，并确保出现类似问题的情况不再发生。</info>
+  </rule>
+
+  <rule id="13103" level="0">
+    <if_sid>13100</if_sid>
+    <match>Connection reset by peer</match>
+    <description>Samba network problems.</description>
+    <description>该规则用于检测由于对等体重置连接导致的samba网络问题</description>
+  <info>处置建议：\n1. 检查Samba服务器上运行的服务的配置文件和参数是否正确。\n2. 检查服务器和对等端之间的网络连接，以确保稳定和可靠。\n3. 检查连接方的设置和凭据，以确保连接可以正确建立和验证。\n4. 确认没有防火墙或其他安全设备阻止了连接，并检查可能的攻击来源。\n5. 对系统和网络进行硬件和软件问题的故障排除。</info>
+  </rule>
+
+  <rule id="13104" level="5">
+    <if_sid>13100</if_sid>
+    <match>Permission denied--</match>
+    <description>Samba: User action denied by configuration.</description>
+    <description>该规则用于检测未配置规则导致的用户操作被拒绝</description>
+    <group>access_denied,pci_dss_10.2.4,pci_dss_10.2.5,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 检查Samba配置文件中与用户权限相关的选项，理解和根据需要进行修改。\n2. 如果是共享目录的权限设置问题，则需要对转换的用户进行必要的权限分配，以确保其访问所需的文件和目录。\n3. 确保在Samba服务器和对等端之间网络连接的稳定和可靠，以避免网络问题对连接构成交互干扰。\n4. 平时务必保证Samba服务器处于最新的安全状态下，定期更新、严格账号密码等措施。</info>
+  </rule>
+
+  <rule id="13105" level="3">
+    <if_sid>13100</if_sid>
+    <match>Unable to connect to CUPS server</match>
+    <description>Samba network problems (unable to connect).</description>
+    <description>该规则用于检测无法连接CPUS服务器导致的samba网络问题</description>
+  <info>处置建议：\n1. 确认CUPS服务器是否正常运行，并检查其服务是否已启动。\n2. 确认网络连接是否稳定以及是否可以从Samba服务器访问CUPS服务器。\n3. 确认Samba服务器上的服务配置文件是否具有正确的参数，如服务端口、服务器地址等参数。\n4. 确认防火墙放行端口。\n5. 尝试重新启动Samba服务器和CUPS服务器。</info>
+  </rule>
+
+  <rule id="13106" level="0" noalert="1">
+    <decoded_as>nmbd</decoded_as>
+    <description>Grouping for the nmbd rules.</description>
+    <description>该规则标识nmbd规则分组</description>
+  </rule>
+
+  <rule id="13108" level="1">
+    <if_sid>13100</if_sid>
+    <match>smbd is already running</match>
+    <description>Samba: An attempt has been made to start smbd but the process is already running.</description>
+    <description>该规则用于检测smbd已在运行时尝试开启新的smbd进程</description>
+    <group>pci_dss_10.6.1,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.6,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 检查Samba服务器运行的当前进程，以及哪个进程尝试启动smbd进程。\n2. 确认Samba服务器是否正常运行并被配置正确。\n3. 确认Samba服务端口是否与Samba服务器的配置文件中所配置的端口一致。\n4. 在需要的情况下，可以杀死正在运行的指定的smbd进程，并重新启动Samba服务，以确保Samba服务的正常运行。</info>
+  </rule>
+
+  <rule id="13109" level="1">
+    <if_sid>13106</if_sid>
+    <match>nmbd is already running</match>
+    <description>Samba: An attempt has been made to start nmbd but the process is already running.</description>
+    <description>该规则用于检测nmbd已在运行时尝试开启新的nmbd进程</description>
+    <group>pci_dss_10.6.1,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.6,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 检查Samba服务器运行的当前进程，以及哪个进程尝试启动nmbd进程。\n2. 确认Samba服务器是否正常运行并被配置正确。\n3. 确认Samba服务端口是否与Samba服务器的配置文件中所配置的端口一致。\n4. 在需要的情况下，可以杀死正在运行的指定的nmbd进程，并重新启动Samba服务，以确保Samba服务的正常运行。</info>
+   </rule>
+
+  <rule id="13110" level="3">
+    <if_sid>13100</if_sid>
+    <match>Connection denied from</match>
+    <description>Samba: Connection was denied.</description>
+    <description>该规则用于检测samba连接被拒绝</description>
+    <group>pci_dss_10.2.4,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 检查samba服务器配置：确保samba服务器已正确配置，检查samba服务器配置文件是否正确并包含正确的共享目录和用户访问权限。\n2. 检查网络设置：检查网络设置以确保正确配置了网络和防火墙规则，以允许samba客户端连接到服务器。\n3. 检查日志文件：检查系统日志以查找任何有关samba连接被拒绝的信息，以确定问题的根本原因。\n4. 升级samba版本：如果发现samba版本过旧，建议升级到最新版本，以获得更好的安全性和性能。</info>
+  </rule>
+
+  <rule id="13111" level="3">
+    <if_sid>13100</if_sid>
+    <match>Socket is not connected</match>
+    <description>Samba: Socket is not connected, write failed.</description>
+    <description>该规则用于检测套接字未连接导致的写入失败</description>
+  <info>处置建议：\n1. 1.检查网络连接是否正常。套接字未连接可能是由于网络连接中断导致的。通过检查网络连接，可以确定问题是否由于网络连接不良造成。\n2.检查被写入的文件是否已经打开。如果文件未打开，并且没有权限打开文件，则该规则可能会出现错误。如果这是问题的根源，则需要打开文件，以便可以将内容写入其中。\n3.检查Samba服务是否正常运行。可以通过检查Samba服务的日志文件来了解服务是否已经启动，并且在写入时未发生错误。\n4.尝试重新连接套接字。有时，套接字未连接可能是由于网络连接中断导致的。您可以尝试重新连接套接字，以便写入数据。</info>
+  </rule>
+
+  <rule id="13112" level="3">
+    <decoded_as>kernel</decoded_as>
+    <match>gvfsd-smb</match>
+    <regex>segfault at \S+ ip \S+ sp \S+ error \d+ in</regex>
+    <description>Samba: Segfault in gvfs-smb.</description>
+    <description>该规则用于检测gvfs-smb中的段错误</description>
+    <group>pci_dss_6.5.2,pci_dss_11.4,pci_dss_6.2,gdpr_IV_35.7.d,nist_800_53_SA.11,nist_800_53_SI.4,nist_800_53_SI.2,tsc_CC6.6,tsc_CC7.1,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  <info>处置建议：\n1. 查看系统日志以找到更详细的错误信息,在这些日志中搜索有助于定位问题所在的位置。\n2. 检查系统的内存使用情况是否正常。段错误通常是由于内存问题导致的。\n3. 检查系统中是否存在其他应用程序或进程耗尽了系统资源。类似于内存使用情况，磁盘空间和CPU使用率等也应该是正常的。\n4. 更新系统和相关软件包。有时，段错误可能是由于已知的软件漏洞或错误导致的。</info>
+  </rule>
+
+</group>
