@@ -23,7 +23,7 @@
     <group>connection_attempt,</group>
     <description>vsftpd: FTP session opened.</description>
     <description>该规则标识FTP会话已打开</description>
-  <info>处置建议：\n 建议管理员定期检查FTP会话并审查相关登录日志以确保安全性。</info>
+  <info>处置建议：\n 定期检查FTP会话并审查相关登录日志以确保安全性。</info>
   </rule>
 
   <rule id="11402" level="3">
@@ -35,7 +35,7 @@
       <id>T1078</id>
     </mitre>
     <group>authentication_success,pci_dss_10.2.5,gpg13_7.1,gpg13_7.2,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
-  <info>处置建议：\n1. 建议管理员要密切关注FTP服务器登录成功的事件，特别是非正常时间登录的事件。\n2. 管理员应该配置FTP服务器的访问控制，以确保只有授权用户可以访问FTP服务器。\n3. 管理员应该使用密码策略和多因素身份验证等安全措施来加强FTP用户的认证过程。</info>
+  <info>处置建议：\n1. 建议关注FTP服务器登录成功的事件，特别是非正常时间登录的事件。\n2. 配置FTP服务器的访问控制，以确保只有授权用户可以访问FTP服务器。\n3. 使用密码策略和多因素身份验证等安全措施来加强FTP用户的认证过程。</info>
   </rule>
 
   <rule id="11403" level="5">
@@ -44,7 +44,7 @@
     <description>vsftpd: Login failed accessing the FTP server.</description>
     <description>该规则用于标识FTP服务器认证不通过，登录失败</description>
     <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,gpg13_7.1,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
-  <info>处置建议：\n1. 建议管理员要密切关注FTP服务器登录成功的事件，特别是非正常时间登录的事件。\n2. 管理员应该配置FTP服务器的访问控制，以确保只有授权用户可以访问FTP服务器。\n3. 管理员应该使用密码策略和多因素身份验证等安全措施来加强FTP用户的认证过程。</info>
+  <info>处置建议：\n1. 建议密切关注FTP服务器登录成功的事件，特别是非正常时间登录的事件。\n2. 配置FTP服务器的访问控制，以确保只有授权用户可以访问FTP服务器。\n3. 使用密码策略和多因素身份验证等安全措施来加强FTP用户的认证过程。</info>
     </rule>
 
   <rule id="11404" level="0">
@@ -52,7 +52,7 @@
     <match>OK UPLOAD: </match>
     <description>vsftpd: FTP server file upload.</description>
     <description>该规则用于标识FTP服务器文件上传</description>
-  <info>处置建议：\n1. 管理员应该定期审查FTP服务器上上传的文件，以确保这些文件是合法和受信任的。如果发现任何可疑或恶意的文件，管理员应该立即采取措施，例如删除文件或隔离文件以进行进一步分析。\n2. 管理员应该配置FTP服务器的访问控制，以确保只有授权用户可以上传文件到FTP服务器。\n3. 管理员应该定期备份FTP服务器上的数据，以避免数据丢失或受到破坏。</info>
+  <info>处置建议：\n1. 定期审查FTP服务器上上传的文件，以确保这些文件是合法和受信任的。如果发现任何可疑或恶意的文件，应该立即采取措施，例如删除文件或隔离文件以进行进一步分析。\n2. 配置FTP服务器的访问控制，以确保只有授权用户可以上传文件到FTP服务器。\n3. 定期备份FTP服务器上的数据，以避免数据丢失或受到破坏。</info>
   </rule>
 
   <rule id="11451" level="10" frequency="8" timeframe="120">
