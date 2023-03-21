@@ -1,0 +1,543 @@
+<group name="syslog,sshd,">
+
+  <rule id="5700" level="0" noalert="1">
+    <decoded_as>sshd</decoded_as>
+	<description>该规则用于解析和分组SSHD相关消息</description>
+  </rule>
+
+  <rule id="5701" level="8">
+    <if_sid>5700</if_sid>
+    <match>Bad protocol version identification</match>
+	<description>该规则是用来检测SSH协议版本不正确或不支持的日志消息，并且认为这可能是攻击或版本信息收集的行为</description>
+	<info>1. 对于公开的服务，请考虑限制对这些信息的访问权限。如更换端口，限制源ip等。\n2.  监视网络流量，尤其是出站流量，以查找是否有异常的版本信息请求。例如，攻击者可以在目标系统上运行“nmap”之类的扫描器以收集版本信息。</info>
+    <mitre>
+      <id>T1190</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,pci_dss_11.4,recon,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5702" level="5">
+    <if_sid>5700</if_sid>
+    <match>^reverse mapping</match>
+    <regex>failed - POSSIBLE BREAK</regex>
+    <description>该规则是用来检测反向解析错误的日志消息，并且认为这可能是由于恶意攻击或不良的ISP引起的</description>	
+	<info>suggestion: 1. 验证SSH服务器配置：验证SSH服务器的配置是否正确，确保反向解析错误不是由于配置问题引起的。例如，确保SSH服务器的DNS配置正确，并且正确地解析了主机名。\n2. 检查网络和DNS设置：检查网络和DNS设置是否正确，并且在可能的情况下，禁用DNS反向解析。\n3. 调查IP地址或者主机名：检查引起错误的IP地址或者主机名，确认它们是否是已知的或者可信的。如果不是，请进一步调查和排查。\n4. 加强安全措施：为了防止恶意攻击，加强SSH服务器的安全措施，如使用密钥认证、限制登录尝试次数等等。\n5. 检查SSH服务器日志：检查SSH服务器的日志，尤其是连接和认证日志，以便及早发现任何可疑行为。\n6. 更新和升级：及时更新和升级SSH服务器软件和操作系统，以修复已知漏洞和安全问题。</info>
+    <group>gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,pci_dss_11.4,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5703" level="10" frequency="6" timeframe="360">
+    <if_matched_sid>5702</if_matched_sid>
+    <same_source_ip />
+    <description>该规则是用来检测大量的反向DNS解析错误，认为这可能是攻击者试图入侵SSH服务器的行为。</description>	
+	<info>处置建议: 系统可能遭到弱口令爆破。\n1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,pci_dss_11.4,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5704" level="4">
+    <if_sid>5700</if_sid>
+    <match>fatal: Timeout before authentication for</match>
+    <description>该规则是用来检测SSH登录过程中的超时事件</description>	
+	<info>处置建议： 针对 SSH 登录时出现超时错误的情况。\n1. 确认是否是正常的登录行为：可以通过查看日志中其他相关信息（如 IP 地址、用户名等）进行分析，确保登录请求是来自合法用户的。\n2. 检查网络连接：超时错误可能是由于网络连接不稳定或网络延迟导致的，可以检查网络连接情况，如网络带宽、网络拓扑等，以确定是否存在网络问题。\n3. 检查 SSH 服务配置：可以检查 SSH 服务的配置，如连接超时时间、最大连接数等参数是否合理，是否存在异常配置或漏洞等。\n4. 检查服务器资源：可以检查服务器资源使用情况，如 CPU、内存、磁盘等是否过载或存在异常情况，这些因素也可能导致 SSH 登录超时。</info>
+  </rule>
+
+  <rule id="5705" level="10" frequency="6" timeframe="360">
+    <if_matched_sid>5704</if_matched_sid>
+    <description>该规则用于检测SSH登录超时事件的频率,系统可能遭到弱口令爆破。</description>
+	<info>处置建议: \n1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1190</id>
+      <id>T1110</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,pci_dss_11.4,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5706" level="6">
+    <if_sid>5700</if_sid>
+    <match>Did not receive identification string from</match>
+    <description>该规则用于检测匹配ssh服务没有收到远程主机的标识字符串的不安全连接</description>
+	<info>处置建议: 1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1021.004</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,pci_dss_11.4,recon,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5707" level="14">
+    <if_sid>5700</if_sid>
+    <match>fatal: buffer_get_string: bad string</match>
+    <description>该规则用于检测SSH服务器是否正在遭受OpenSSH challenge-response的攻击</description>
+	<info>处置建议： 1. 首先应立即对所有SSH服务进行审查，检查是否存在已知漏洞或未经授权的访问。\n2. 更新OpenSSH到最新版本或应用所需的补丁程序。\n3. 对于已知受攻击的服务器，应当考虑重新部署或清除所有凭证，因为攻击者可能已经利用漏洞获取了访问权限。\n4. 强烈建议实施多层防御措施，包括使用网络防火墙，对SSH服务器进行强化配置，并限制对SSH服务器的访问。</info>
+    <mitre>
+      <id>T1210</id>
+      <id>T1068</id>
+    </mitre>
+    <group>exploit_attempt,gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,nist_800_53_SI.2,pci_dss_11.4,pci_dss_6.2,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5709" level="0">
+    <if_sid>5700</if_sid>
+    <match>error: Could not get shadow information for NOUSER|</match>
+    <match>fatal: Read from socket failed: |error: ssh_msg_send: write|</match>
+    <match>^syslogin_perform_logout: |^pam_succeed_if(sshd:auth): error retrieving information about user|can't verify hostname: getaddrinfo</match>
+    <description>该规则用于检测ssh服务器是否产生无效sshd信息，这些信息不包含用户/ip/上下文信息</description>
+	<info>处置建议： 用来识别SSH服务器的无用消息，只需简单地忽略这些消息，而不需要采取进一步的行动。</info>
+  </rule>
+
+  <rule id="5710" level="5">
+    <if_sid>5700</if_sid>
+    <match>illegal user|invalid user</match>
+    <description>该规则用于检测尝试使用不存在的用户登录SSH的行为</description>
+	<info>处置建议： 1. 审查日志并验证不存在的用户不是系统上的授权用户。2. 监视试图使用不存在的用户帐户登录的源IP地址，并确定其是否是合法的源。3. 考虑实施帐户锁定策略，以限制使用不存在的用户帐户的登录尝试次数。4. 考虑实施SSH登录的多因素身份验证（MFA）以增强安全性。</info>
+    <mitre>
+      <id>T1110.001</id>
+      <id>T1021.004</id>
+      <id>T1078</id>
+    </mitre> <group>authentication_failed,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,invalid_login,nist_800_53_AU.14,nist_800_53_AC.7,nist_800_53_AU.6,pci_dss_10.2.4,pci_dss_10.2.5,pci_dss_10.6.1,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5711" level="0">
+    <if_sid>5700</if_sid>
+    <match>authentication failure; logname= uid=0 euid=0 tty=ssh|</match>
+    <match>input_userauth_request: invalid user|</match>
+    <match>PAM: User not known to the underlying authentication module for illegal user|</match>
+    <match>error retrieving information about user</match>
+    <description>该规则用于检测SSHD登录失败，识别重复/无用的没有关于用户/ip的sshd信息</description>
+	<info>处置建议： 用来识别SSH服务器的无用消息，只需简单地忽略这些消息，而不需要采取进一步的行动。</info>
+  </rule>
+
+  <rule id="5712" level="10" frequency="8" timeframe="120" ignore="60">
+    <if_matched_sid>5710</if_matched_sid>
+    <same_source_ip />
+    <description>该规则用于检测暴力破解（brute force）攻击，攻击者试图通过使用不存在的用户来获取对系统的访问权限。</description>
+	<info>处置建议: 1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+	<group>authentication_failures,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_SI.4,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_11.4,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5713" level="6">
+    <if_sid>5700</if_sid>
+    <match>Corrupted check bytes on</match>
+	<description>该规则用于检测在SSH连接过程中，检查字节发生破坏的情况。</description>
+	<info>处置建议： 1. 重启SSH服务。\n2. 检查其他日志以排查真实的问题。</info>
+  </rule>
+
+  <rule id="5714" level="14" timeframe="120" frequency="3">
+    <if_matched_sid>5713</if_matched_sid>
+    <match>Local: crc32 compensation attack</match>
+    <info type="cve">2001-0144</info>
+    <info type="link">http://www.securityfocus.com/bid/2347/info/</info>
+    <description>该规则用于检测SSH CRC-32补偿攻击</description>
+	<info>处置建议： 1. 首先应立即对所有SSH服务进行审查，检查是否存在已知漏洞或未经授权的访问。\n2. 更新OpenSSH到最新版本或应用所需的补丁程序。\n3. 对于已知受攻击的服务器，应当考虑重新部署或清除所有凭证，因为攻击者可能已经利用漏洞获取了访问权限。\n4. 强烈建议实施多层防御措施，包括使用网络防火墙，对SSH服务器进行强化配置，并限制对SSH服务器的访问。</info>
+    <mitre>
+      <id>T1210</id>
+    </mitre>
+    <group>exploit_attempt,gdpr_IV_35.7.d,gpg13_4.12,nist_800_53_SI.4,nist_800_53_SI.2,pci_dss_11.4,pci_dss_6.2,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5715" level="3">
+    <if_sid>5700</if_sid>
+    <match>^Accepted|authenticated.$</match>
+    <description>该规则用于检测sshd的身份验证成功事件</description>
+	<info>处置建议： 该日志表示登录成功，请检查该登录行为是否为用户本人。</info>
+    <mitre>
+      <id>T1078</id>
+      <id>T1021</id>
+    </mitre>
+    <group>authentication_success,gdpr_IV_32.2,gpg13_7.1,gpg13_7.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.5,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5716" level="5">
+    <if_sid>5700</if_sid>
+    <match>^Failed|^error: PAM: Authentication</match>
+    <description>该规则用于检测sshd的身份验证失败事件</description>
+	<info>处置建议： 1. 根据日志内容，检查认证失败的具体原因。\n2. 对于多次认证失败的IP地址，进行排查和限制访问。\n3. 考虑采取强化的认证方式，例如多因素认证等，以增加登录的安全性。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failed,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5717" level="4">
+    <if_sid>5700</if_sid>
+    <match>error: Bad prime description in line</match>
+    <description>该规则用于检测 SSHD 服务中的错误日志消息</description>
+	<info>处置建议： 建议检查配置文件以及服务器的完整性，以确保配置文件没有被篡改或被恶意修改。同时，建议密切关注服务器的安全日志，以及定期进行系统漏洞扫描和安全审计。</info>
+  </rule>
+
+  <rule id="5718" level="5">
+    <if_sid>5700</if_sid>
+    <match>not allowed because</match>
+    <description>该规则用于检测使用黑名单用户登录</description>
+	<info>处置建议： 1. 确认被拒绝用户的身份是否合法，避免误判。\n2. 监控登录尝试的来源IP地址，确定它是合法的。\n3. 考虑实施账户锁定策略，限制使用被拒绝用户账户的登录尝试次数。\n4. 考虑实施SSH登录的多因素身份认证（MFA），增强安全性。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,invalid_login,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5719" level="10" frequency="8" timeframe="120" ignore="60">
+    <if_matched_sid>5718</if_matched_sid>
+    <description>该规则用于检测多次使用黑名单用户登录</description>
+	<info>处置建议： 1. 检查系统中是否存在与规则匹配的被拒绝访问的用户账户，如果存在，应该立即禁用或删除该账户。\n2. 监控与规则匹配的来源IP地址，确认是否为合法的来源。如果不是，可以考虑将该IP地址加入到防火墙的黑名单中，限制其访问。\n3. 考虑实施账户锁定策略，限制非法登录尝试次数，减少账户被攻击的风险。\n4. 考虑实施SSH登录的多因素身份认证(MFA)机制，提高系统安全性。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,invalid_login,nist_800_53_AU.14,nist_800_53_AC.7,nist_800_53_SI.4,pci_dss_10.2.4,pci_dss_10.2.5,pci_dss_11.4,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+	<rule id="5720" level="10" frequency="8">
+    <if_matched_sid>5716</if_matched_sid>
+    <same_source_ip />
+    <description>该规则用于检测检多次认证失败的事件</description>
+	<info>处置建议: 系统可能遭到弱口令爆破。\n1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failures,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,nist_800_53_SI.4,pci_dss_10.2.4,pci_dss_10.2.5,pci_dss_11.4,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5721" level="0">
+    <if_sid>5700</if_sid>
+    <match>Received disconnect from</match>
+    <description>这条规则是用来检测SSH会话被系统断开的情况</description>
+	<info>处置建议：建议检查系统网络连接是否正常，或者是否存在任何问题导致系统在连接过程中出现意外断开。另外，建议检查是否存在恶意行为或未授权访问导致连接中断的风险。 </info>
+  </rule>
+
+  <rule id="5722" level="0">
+    <if_sid>5700</if_sid>
+    <match>Connection closed</match>
+    <description>这条规则是用来检测SSH会话关闭</description>
+	<info>处置建议： 该规则仅报告SSH连接已关闭，没有指示任何问题或潜在威胁，建议在系统日志中查找更多信息，并根据需要采取进一步的行动。</info>
+    <group>gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.5,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5723" level="0">
+    <if_sid>5700</if_sid>
+    <match>error: buffer_get_bignum2_ret: negative numbers not supported</match>
+	<info>处置建议： 1. 检查授权的密钥文件（authorized_keys），确保其中没有错误的密钥。\n2. 重新生成密钥并在 authorized_keys 文件中更新它们。\n3. 检查系统和 SSH 配置文件以确保它们正确设置，并不包含任何错误或不必要的条目。\n4. 更新系统和 SSH 软件到最新版本，以纠正任何已知的漏洞或安全问题。\n5. 监控 SSH 日志以寻找任何可疑行为或攻击，并及时做出响应。</info>
+    <description>sshd: key error.</description>
+    <description>这个规则是用于检测SSH服务器中密钥错误</description>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.a.2.IV,hipaa_164.312.e.1,hipaa_164.312.e.2.I,hipaa_164.312.e.2.II,hipaa_164.312.b,nist_800_53_SC.8,nist_800_53_AU.6,pci_dss_4.1,pci_dss_10.6.1,tsc_CC6.7,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5724" level="0">
+    <if_sid>5700</if_sid>
+    <match>fatal: buffer_get_bignum2: buffer error</match>
+    <info>This error may relate to ssh key handling.</info>
+    <description>这条规则用于检测SSHD key错误</description>
+	<info>处置建议： 检查ssh key文件是否存在任何问题，如文件是否存在，文件权限是否正确以及key文件是否已损坏。在确定问题后，建议修复或替换相关文件以确保安全性。</info>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.a.2.IV,hipaa_164.312.e.1,hipaa_164.312.e.2.I,hipaa_164.312.e.2.II,hipaa_164.312.b,nist_800_53_SC.8,nist_800_53_AU.6,pci_dss_4.1,pci_dss_10.6.1,tsc_CC6.7,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5725" level="0">
+    <if_sid>5700</if_sid>
+    <match>fatal: Write failed: Host is down</match>
+	<description>SSH连接已被主机不正常地断开</description>
+	<info>处置建议： 检查网络连接是否正常，并确认目标主机是否可达。如果问题仍然存在，请检查目标主机的系统状态和日志文件以查看任何错误或异常情况。</info>
+  </rule>
+
+  <rule id="5726" level="5">
+    <if_sid>5700</if_sid>
+    <match>error: PAM: Module is unknown for</match>
+    <description>这个规则用于检测SSH日志中是否存在未知的PAM模块错误</description>
+	<info>处置建议： 应检查PAM配置文件以查找是否缺少所需的模块，确保所有使用的模块都正确安装和配置。此外，应确保PAM配置不受未经授权的访问或更改的影响。建议在进行任何更改之前备份PAM配置文件。</info>
+  </rule>
+
+  <rule id="5727" level="0">
+    <if_sid>5700</if_sid>
+    <match>failed: Address already in use.</match>
+    <description>该规则用于检测启动sshd时是否已经有其他进程占用了该端口</description>
+	<info>处置建议： </info>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.b,nist_800_53_AU.6,nist_800_53_CM.1,pci_dss_10.6.1,pci_dss_2.2.3,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5728" level="4">
+    <if_sid>5700</if_sid>
+    <match>Authentication service cannot retrieve user credentials</match>
+    <info>May be related to PAM module errors.</info>
+    <description>该规则用于检测身份验证服务无法检索用户凭据</description>
+	<info>处置建议： 建议检查端口号是否正确，如果正确则检查是否有其他进程已经绑定到该端口。如果有，请停止该进程或更改ssh端口号。同时，需要考虑是否存在安全漏洞，例如攻击者正在尝试利用该端口进行攻击。</info>
+    <group>authentication_failed,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.5,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5729" level="0">
+    <if_sid>5700</if_sid>
+    <match>debug1: attempt</match>
+    <description>该规则用于检测调试信息</description>
+	<info>处置建议： 调试消息，无需特别关注。</info>
+  </rule>
+
+  <rule id="5730" level="4">
+    <if_sid>5700</if_sid>
+    <regex>error: connect to \S+ port \d+ failed: Connection refused</regex>
+    <description>该规则用于检查SSH守护程序不接受连接</description>
+	<info>处置建议： 检查 SSHD 进程是否在运行，并确保所连接的端口号是否正确。如果 SSHD 已经在运行，可以尝试重启 SSHD 服务或检查 SSHD 配置文件是否正确配置。同时，还可以检查防火墙或网络设备是否正确配置，以确保 SSHD 端口可达。</info>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.b,nist_800_53_AU.6,pci_dss_10.6.1,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5731" level="6">
+    <if_sid>5700</if_sid>
+    <match>AKASSH_Version_Mapper1.</match>
+	<description>该规则用于检测是否有攻击者正在进行远程服务扫描</description>
+	<info>处置建议：1. 配置SSH服务器以限制连接尝试次数并防止暴力破解；\n2. 采取强密码策略和多因素认证以提高安全性；\n3. 监控SSH服务器日志，及时检测并响应任何恶意行为；\n4. 更新操作系统和SSH软件以保持安全性。 </info>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+    <group>gdpr_IV_35.7.d,nist_800_53_SI.4,tsc_CC6.1,tsc_CC6.8,pci_dss_11.4,recon,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5732" level="0">
+    <if_sid>5700</if_sid>
+    <match>error: connect_to </match>
+    <description>该规则用于检测是否存在可能的端口转发故障</description>
+	<info>处置建议： 1. 确认目标主机是否可用，尝试使用其他协议进行连接；\n2. 确认本地端口和目标端口是否正确；\n3. 检查防火墙和安全组是否正确配置；\n4. 确认 SSH 服务是否已启用，并且端口是否正确配置；\n5. 确认是否存在网络问题，如网络延迟或丢包问题。</info>
+  </rule>
+
+  <rule id="5733" level="0">
+    <if_sid>5700</if_sid>
+    <match>Invalid credentials</match>
+    <description>该规则用于检测sshd登录时使用无效凭据（即用户名或密码错误）</description>
+	<info>处置建议： 1. 确认目标主机是否可用，尝试使用其他协议进行连接；\n2. 确认本地端口和目标端口是否正确；\n3. 检查防火墙和安全组是否正确配置；\n4. 确认 SSH 服务是否已启用，并且端口是否正确配置；\n5. 确认是否存在网络问题，如网络延迟或丢包问题。</info>
+    <group>authentication_failures,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5734" level="0">
+    <if_sid>5700</if_sid>
+    <match>Could not load host key</match>
+    <description>该规则用于检测SSH守护进程无法加载一个或多个主机密钥</description>
+    <info>This may be related to an upgrade to OpenSSH.</info>
+	<info>处置建议：1. 立即对用户进行身份验证，检查是否有异常登录行为。如果是误报，请确保该用户的帐户没有被攻击者尝试登录。\n2. 要求用户更改密码，并强制使用复杂密码策略。如果这是一次恶意攻击，则应采取进一步的安全措施，例如监视该帐户的所有活动，并加强访问控制。\n3. 对其他帐户进行审查，以确保它们也没有被攻击者尝试登录。</info>
+  </rule>
+
+  <rule id="5735" level="0">
+    <if_sid>5700</if_sid>
+    <match>Write failed: Broken pipe</match>
+    <description>该规则用于检测客户端中断了连接，而服务器在尝试向客户端写入数据时无法成功</description>
+	<info>处置建议： 1.检查与主机的连接是否稳定，可能需要进行网络诊断和排除。\n2. 如果出现了网络问题，则可以尝试重新启动SSH服务，并确保所有主机都已成功连接。</info>
+  </rule>
+
+  <rule id="5736" level="0">
+    <if_sid>5700</if_sid>
+    <match>^error: setsockopt SO_KEEPALIVE: Connection reset by peer$|</match>
+    <match>^error: accept: Software caused connection abort$</match>
+    <description>该规则用于检测SSH连接是否发生重置或中止</description>
+	<info>处置建议： 检查网络是否存在问题，如防火墙、网络设备或运营商，同时查看 SSH 服务器的日志，以确定是否存在其他问题，例如 PAM 认证配置错误、端口冲突等。如果出现频繁的连接中止，则建议进一步调查以确定原因。</info>
+  </rule>
+
+  <rule id="5737" level="5">
+    <if_sid>5700</if_sid>
+    <match>^fatal: Cannot bind any address.$</match>
+    <description>该规则用于检测SSH服务器无法绑定到配置的地址</description>
+	<info>处置建议： 1. 确保SSH服务运行在特权模式下。\n2. 检查其他服务是否在使用相同的端口。\n3. 检查服务器防火墙是否允许SSH服务通过。\n4. 如果您在配置文件中使用了特定的IP地址，请确保该地址在系统中可用并且没有被其他服务占用。\n5. 检查您的网络配置，确保SSH服务可以访问到其配置的地址。</info>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.b,nist_800_53_AU.6,pci_dss_10.6.1,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5738" level="5">
+    <if_sid>5700</if_sid>
+    <match>set_loginuid failed opening loginuid$</match>
+    <description>该规则用于检测文件的权限设置不正确或文件丢失,pam_loginuid无法打开登录loginuid</description>
+	<info>处置建议：1. 检查 loginuid 文件的权限和所有者是否正确。\n2. 确认登录用户是否有适当的权限打开该文件。\n3. 如果需要，尝试手动打开 loginuid 文件并检查是否存在问题。\n4. 检查 pam_loginuid 的配置是否正确。\n5. 如果存在多个 pam_loginuid 模块，则将其配置为最后一个模块。 </info>
+    <group>authentication_failed,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5739" level="4">
+    <if_sid>5700</if_sid>
+    <match>^error: Could not stat AuthorizedKeysCommand</match>
+	<description>该规则用于检测sshd服务在加载AuthorizedKeysCommand配置文件时遇到错误</description>
+	<info>处置建议： 检查sshd配置文件中的AuthorizedKeysCommand参数是否正确配置，并在需要时对其进行修复。同时，建议检查是否有任何未经授权的更改或访问。</info>
+  </rule>
+
+  <rule id="5740" level="4">
+    <if_sid>5700</if_sid>
+    <match>Connection reset by peer$</match>
+    <description>该规则用于检测sshd服务的连接被对端重置</description>
+	<info>处置建议： 检查 SSH 服务器的配置文件，确保 AuthorizedKeysCommand 配置正确，并且具有足够的权限执行所需的操作。</info>
+  </rule>
+
+  <rule id="5741" level="4">
+    <if_sid>5700</if_sid>
+    <match>Connection refused$</match>
+    <description>该规则用于检测sshd服务连接被拒绝</description>
+	<info>处置建议： 1. 确保目标服务器上的sshd服务正在运行并已打开所需的端口。\n2. 检查服务器上的防火墙规则，确保它们允许所需的连接。\n3. 如果连接被拒绝的原因是服务器负载过高，请等待一段时间并尝试重新连接。</info>
+  </rule>
+
+  <rule id="5742" level="4">
+    <if_sid>5700</if_sid>
+    <match>Connection timed out$</match>
+    <description>该规则主要用于检测SSH服务的连接超时事件</description>
+	<info>处置建议： 1. 确认连接目标是否正确并存在，确认 SSH 服务是否已启动。\n2. 检查目标主机防火墙配置是否正确，是否允许连接 SSH 端口。\n3. 检查 SSH 服务配置是否正确，例如 SSH 配置文件中 SSH 端口是否正确。\n4. 检查目标主机是否存在网络故障，例如网络连接是否稳定，是否存在 IP 地址冲突等问题。\n5. 如有必要，尝试在不同的时间段进行连接尝试，以避免目标主机负载过高或网络繁忙等原因导致的连接拒绝问题。</info>
+    <group>gdpr_IV_35.7.d,hipaa_164.312.a.1,nist_800_53_AC.2,pci_dss_8.1.5,tsc_CC6.1,</group>
+  </rule>
+
+  <rule id="5743" level="4">
+    <if_sid>5700</if_sid>
+    <match>No route to host$</match>
+    <description>该规则用于检测sshd在连接远程主机时无法找到路由</description>
+	<info>处置建议： 1. 确认目标主机是否处于正常运行状态，并且网络连接是否正常。\n2. 检查防火墙规则是否正确配置，确保能够从源IP地址访问目标主机的SSH端口。\n3. 检查路由表是否正确配置，确保从源IP地址到达目标主机的路径是正确的。\n4. 如果规则持续触发，可以考虑排查可能存在的网络故障或配置错误，并及时解决。</info>
+  </rule>
+
+  <rule id="5744" level="4">
+    <if_sid>5700</if_sid>
+    <match>failure direct-tcpip$</match>
+    <description>该规则用于检测ssh服务端口转发问题</description>
+	<info>处置建议： 1. 确认端口转发规则是否正确配置，如转发的目标地址、端口是否正确等。\n2. 确认网络连通性，如目标主机是否在线、防火墙是否开启等。\n3. 检查SSH配置文件是否正确，如监听地址、端口等配置是否正确。</info>
+  </rule>
+
+  <rule id="5745" level="4">
+    <if_sid>5700</if_sid>
+    <match>Transport endpoint is not connected$</match>
+    <description>该规则用于检测sshd服务出现“传输端点未连接”的错误</description>
+	<info>处置建议： 重新连接并检查网络连接是否正常。如果问题仍然存在，请考虑检查服务器端口配置和网络配置。</info>
+  </rule>
+
+  <rule id="5746" level="4">
+    <if_sid>5700</if_sid>
+    <match>get_remote_port failed$</match>
+    <description>该规则用于检测sshd服务在获取远程端口时失败</description>
+	<info>处置建议： 1. 检查网络连接是否正常，尝试通过其他方式与远程主机进行连接。\n2. 确保远程客户端正常运行，并使用正确的协议与sshd进行通信。\n3. 检查sshd配置是否正确，并确保没有任何配置错误导致此问题。\n4. 在必要时，可以启用调试模式以获得更多信息，以便更好地解决问题。</info>
+  </rule>
+
+  <!-- http://www.gossamer-threads.com/lists/openssh/users/47438 -->
+  <rule id="5747" level="6">
+    <if_sid>5700</if_sid>
+    <match>bad client public DH value</match>
+    <description>该规则用于检测公共DH值问题，客户端提供了一个无效的公共DH值导致会话无法继续进行</description>
+	<info>1. 立即断开与 SSH 客户端的连接。\n2. 对服务器进行深度安全审计，以确定是否存在其他安全漏洞或攻击迹象。\n3. 确认 SSH 客户端身份，以确定是否存在身份验证问题。\n4. 更新 SSH 服务器的配置，以限制连接到受信任的 IP 地址和用户。\n5. 升级 SSH 服务器软件版本以解决已知漏洞，以及实施强密码策略和其他安全最佳实践。</info>
+  </rule>
+
+  <rule id="5748" level="6">
+    <if_sid>5700</if_sid>
+    <match>Corrupted MAC on input.</match>
+    <description>该规则用于检测SSH服务器收到具有破损MAC（消息认证码）的输入</description>
+	<info>处置建议： 1. 建议检查是否存在中间人攻击，以及确认双方使用的密钥是否一致。2. 建议检查是否存在中间人攻击，以及确认双方使用的密钥是否一致。</info>
+    <group>gdpr_IV_35.7.d,gpg13_4.3,hipaa_164.312.b,nist_800_53_AU.6,pci_dss_10.6.1,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5749" level="4">
+    <if_sid>5700</if_sid>
+    <match>^Bad packet length</match>
+    <description>该规则用于检测SSH连接时出现的坏数据包长度问题</description>
+	<info>处置建议： 1. 确认是否存在恶意攻击或者尝试进行渗透测试的行为。\n2. 对于异常包长度的情况，建议检查SSH版本和配置是否正确。\n3. 如果确定是攻击行为，应该立即启动应急响应计划，排查并修复漏洞，更新补丁，防止攻击者再次利用相同的漏洞进攻。\n4. 针对漏洞修复后的环境，应该加强安全策略，包括加强访问控制、审计策略、强化口令管理等，提高系统安全性。</info>
+  </rule>
+
+  <rule id="5750" level="0">
+    <decoded_as>sshd</decoded_as>
+    <if_sid>5700</if_sid>
+    <match>Unable to negotiate with |Unable to negotiate a key|fatal: no matching</match>
+    <description>该规则用于检测是否有SSH客户端无法与服务器协商密钥或无法找到匹配的密钥，或服务器收到的包长度不正确的情况</description>
+	<info>处置建议： 1. 检查网络连接，确保网络连接正常，并且没有任何中断或错误。\n2. 检查 SSH 服务器和客户端之间的连接是否正常，并确保在防火墙中允许了 SSH 流量。\n3. 确认客户端是否配置正确，并检查客户端是否使用了正确的密钥。\n4. 确认 SSH 服务器的配置是否正确，并检查是否使用了正确的密钥。\n5. 尝试使用其他客户端连接 SSH 服务器，以确定问题是否在客户端上。\n6. 检查 SSH 服务器和客户端的日志，以查看是否有任何错误消息，并采取相应的措施。</info>
+  </rule>
+
+  <rule id="5751" level="1">
+    <decoded_as>sshd</decoded_as>
+    <if_sid>5700</if_sid>
+    <match>no hostkey alg [preauth]</match>
+    <description>这个规则用于检测SSH守护进程的预身份验证阶段（preauth）中出现的“no hostkey alg”错误</description>
+	<info>处置建议： 检查 SSH 配置文件中的 HostKey 参数，确认其包含支持的密钥算法。如果该参数已正确设置，则可能需要升级 SSH 版本以支持所需的密钥算法。 </info>
+  </rule>
+
+  <rule id="5752" level="2">
+    <if_sid>5750</if_sid>
+    <match>no matching key exchange method found.|Unable to negotiate a key exchange method</match>
+    <description>该规则用于检测ssh连接过程中，客户端未提供可接受的密钥交换方式</description>
+	<info>处置建议： 更新 SSH 客户端或 SSH 服务器软件，或者在 SSH 服务器上配置允许使用更多的密钥交换方法。</info>
+  </rule>
+
+  <rule id="5753" level="2">
+    <if_sid>5750</if_sid>
+    <match>no matching cipher found</match>
+    <description>该规则用于检测ssh服务器与客户端之间协商加密算法时出现错误</description>
+	<info>处置建议：1. 检查ssh服务器和客户端使用的加密算法是否一致，可在sshd配置文件中设置Ciphers参数，指定支持的加密算法。可以参考ssh_config和sshd_config文件的文档来进行设置。\n2. 更新ssh服务器和客户端到最新版本，并确保使用的加密算法都得到支持。\n3. 确保网络连接稳定，可能存在网络问题导致数据包丢失或损坏，导致ssh连接失败。\n4. 如果这个问题仍然存在，可以尝试使用其他加密算法或使用其他协议（如TLS）进行连接。 </info>
+  </rule>
+
+  <rule id="5754" level="1">
+    <if_sid>5700</if_sid>
+    <match>Failed to create session: </match>
+    <description>该规则用于检测SSH服务器无法创建会话</description>
+	<info>处置建议： 1. 检查网络连接，确保服务器可用。\n2. 确认输入的用户名和密码是否正确。\n3. 检查服务器上是否有足够的资源可用。\n4. 如果问题仍然存在，请尝试重新启动服务器并重新登录。 </info>
+  </rule>
+
+  <rule id="5755" level="3">
+    <if_sid>5700</if_sid>
+    <match>bad ownership or modes for file</match>
+    <description>该规则用于检测SSH服务器拒绝了客户端的身份验证请求</description>
+	<info>处置建议：1. 确认authorized_keys文件的正确拥有者和权限设置。authorized_keys文件应该属于连接到SSH服务器的用户，并且权限设置应该为600。\n2. 确保authorized_keys文件包含了连接到SSH服务器的用户的公钥。 </info>
+    <group>authentication_failed,gpg13_7.1,</group>
+  </rule>
+
+  <rule id="5756" level="0">
+    <if_sid>5700</if_sid>
+    <match> failed, subsystem not found$</match>
+    <description>该规则用于检测SSH连接过程中出现的子系统请求失败问题</description>
+	<info>处置建议：检查SSH服务器的配置文件和子系统是否已正确配置，并确认所需的子系统是否已安装并已加入系统的PATH环境变量中。 </info>
+  </rule>
+
+  <rule id="5757" level="0">
+    <if_sid>5700</if_sid>
+    <match>but this does not map back to the address - POSSIBLE BREAK-IN ATTEMPT!$</match>
+    <description>该规则用于检测SSH连接时，客户端的DNS映射是否正确</description>
+	<info>处置建议： 1. 验证并纠正DNS映射错误，以确保所有IP地址都能正确映射到域名。\n2. 检查系统是否已被入侵，特别是对于与该事件相关的系统进行深入的审核和分析。\n3. 如果确认确实存在入侵，则应采取必要的措施，如修补漏洞、更新防病毒软件、应用访问控制等，以确保系统安全。</info>
+  </rule>
+
+  <rule id="5758" level="8">
+    <if_sid>5700,5710</if_sid>
+    <match>^error: maximum authentication attempts exceeded </match>
+    <description>该规则的作用是检测SSH服务器中的最大身份验证尝试失败超过允许的最大次数</description>
+	<info>处置建议: 系统可能遭到弱口令爆破。\n1. 加强访问控制：限制对敏感系统访问，如更换端口，限制源ip等，以减少受到攻击的可能性。\n2. 强制使用复杂密码：强制所有用户使用复杂的密码，并且要求在一段时间后更新密码。\n3.更改登录方式为密钥登陆，减少弱密码风险。\n4.  监控账户行为：定期监控所有账户的活动，尤其是高权限账户，以及检测任何异常行为。对于账户访问失败的情况，应该记录下相关日志进行后续分析。\n5. 定期审查账户：定期审查所有用户的账户，尤其是超级用户和系统管理员账户。关闭不必要的账户，并且删除已经离职或者不再需要的账户。\n6. 及时修补漏洞：及时修补系统和应用程序的漏洞，避免攻击者利用漏洞获取账户凭据。\n7. 实施安全审计：建立有效的安全审计机制，对系统和应用程序进行审计，及时发现并防范安全事件的发生。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failed,gpg13_7.1,</group>
+  </rule>
+
+  <rule id="5759" level="2">
+    <if_sid>5750</if_sid>
+    <match>no matching mac found</match>
+    <description>该规则用于检测客户端与服务端没有协商出一个匹配的消息验证码</description>
+	<info>处置建议： 1. 检查SSH服务器和客户端的配置，确保它们都支持相同的MAC算法。\n2. 更新SSH客户端和服务器，以便使用较新的加密套件和MAC算法。\n3. 如果客户端和服务器之间的网络存在代理或防火墙，请检查它们是否正确配置，不会阻止SSH通信。\n4. 如果问题仍然存在，请尝试使用其他SSH客户端或服务器进行连接，以确认是否存在客户端或服务器软件的问题。</info>
+  </rule>
+
+  <rule id="5760" level="5">
+    <if_sid>5700,5716</if_sid>
+    <match>Failed password|Failed keyboard|authentication error</match>
+    <description>该规则用于检测身份验证失败，包括密码错误/键入错误/身份验证错误</description>
+	<info>处置建议： 1. 检查密码策略是否足够安全，并考虑加强密码复杂度、定期更改密码等措施；\n2. 检查是否存在授权问题，如用户的密钥是否正确授权、用户权限是否正确等；\n3. 检查是否存在配置错误，如 SELinux 设置是否正确等；\n4. 在认证失败次数达到一定阈值后，暂时禁止该用户进行认证，或者暂时限制来自该 IP 地址的连接，以防止恶意攻击者继续尝试登录；\n5. 如果认证失败是由于攻击者进行字典攻击等恶意行为导致的，可以考虑采取防止密码爆破的措施，如使用防火墙或安全组限制登录尝试次数、使用 SSH 配置限制登录尝试次数等。</info>
+    <mitre>
+      <id>T1110.001</id>
+      <id>T1021.004</id>
+    </mitre>
+    <group>authentication_failed,gdpr_IV_35.7.d,gdpr_IV_32.2,gpg13_7.1,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5761" level="0">
+    <if_sid>5700</if_sid>
+    <match>Disconnected from user</match>
+    <description>该规则用于检测ssh由于用户引发的连接关闭事件</description>
+	<info>处置建议：检查网络连接和系统日志，以确定关闭连接的原因，并采取适当的措施，如重新建立连接，加强网络安全防御等。</info>
+    <group>gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_10.2.5,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+  <rule id="5762" level="4">
+    <if_sid>5700</if_sid>
+    <match>Connection reset</match>
+	<description>该规则用于检测ssh连接是否被重置</description>
+	<info>处置建议： 1. 确认网络是否正常，包括网络链路、设备等是否存在故障。\n2. 检查被访问的主机的系统日志，查看是否有其他异常或告警，例如资源不足等。\n3. 如果该告警频繁出现，可以考虑升级SSH服务端，或者更换SSH服务端实现更加稳定的远程访问。</info>
+  </rule>
+
+  <rule id="5763" level="10" frequency="8" timeframe="120" ignore="60">
+    <if_matched_sid>5760</if_matched_sid>
+    <same_source_ip/>
+    <description>该规则用于检测暴力破解攻击</description>
+	<info>处置建议：1. 分析日志以确认是否存在暴力破解攻击。如果是，则应立即采取措施停止攻击。\n2. 禁用源 IP 地址或者禁用帐户以防止继续攻击。3\n. 建议考虑使用双因素身份验证等更强的认证方式来加强安全性。</info>
+    <mitre>
+      <id>T1110</id>
+    </mitre>
+    <group>authentication_failures,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_SI.4,nist_800_53_AU.14,nist_800_53_AC.7,pci_dss_11.4,pci_dss_10.2.4,pci_dss_10.2.5,tsc_CC6.1,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+  </rule>
+
+</group>
